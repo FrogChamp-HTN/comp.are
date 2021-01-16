@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import dotenv
 import datetime
 import os
+from urllib.request import urlopen
+import json
 
 from discord.ext import commands
 from math import pi
@@ -15,8 +17,50 @@ DISCORD_TOKEN = os.environ.get("bot-token")
 print(DISCORD_TOKEN)
 bot = commands.Bot(command_prefix="!")
 
-# @bot.command(name="cache")
-# async def cache(ctx, *username_args):
+def filterAC(sub):
+	return sub['result'] == 'AC'
+
+@bot.command(name="cache")
+async def cache(ctx, *username_args):
+	print("Command: cache")
+	username = username_args[0]
+
+	#request for user info
+	userresponse = urlopen("https://dmoj.ca/api/user/info/" + username)
+	userdata = json.loads(userresponse.read())
+	subs = []
+	
+	for i in range(5):
+		submissionresponse = urlopen("https://dmoj.ca/api/v2/submissions?user=" + username + "&page=" + str(i+1))
+		submissiondata = json.loads(submissionresponse.read())
+		subs.extend(submissiondata['data']['objects'])
+
+		if not submissiondata['data']['has_more']:
+			break
+	
+	# filter only AC
+	ac = list(filter(filterAC, subs))
+
+	languages = {}
+
+	for submission in ac:
+		if submission["language"] in languages:
+			languages[submission["language"]] += 1
+		else:
+			languages[submission["language"]] = 1
+	
+	# remove nested data from userdata
+	userdata["contests"] = None
+
+	# add in more data to profile
+	userdata["languages"] = json.dumps(languages)
+	userdata["solved"] = len(ac)
+	userdata["username"] = username
+
+	#print("[" + json.dumps(userdata) + "]")
+
+	# send all of this to Dropbase
+
 
 
 @bot.command(name="plot")
