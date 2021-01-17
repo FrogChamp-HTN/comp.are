@@ -8,6 +8,7 @@ import json
 
 from urllib.request import urlopen
 from discord.ext import commands
+from matplotlib import gridspec
 from math import pi
 dotenv.load_dotenv()
 
@@ -62,10 +63,9 @@ async def cache(ctx, *username_args):
 
 	# send all of this to Dropbase
 
-def filter(json_file):
+def process(json_file):
 	# read json
-	results = json.load(json_file)[0]
-	languages = json.loads(results["languages"])
+	languages = json.loads(json_file["languages"])
 	# calc values
 	values = [0 for i in range(4)]
 	for key, value in languages.items():
@@ -85,49 +85,76 @@ def filter(json_file):
 async def plot(ctx, *usernames_args):
 	# figure and subplot
 	# fig = plt.figure(figsize=(6,6))
-	ax = plt.subplot(polar="True")
+	gs = gridspec.GridSpec(2, 1, height_ratios = [1, 3])
+	ax = plt.subplot(gs[1], polar="True")
+	ax.set_theta_offset(pi / 2)
+	ax.set_theta_direction(-1)
+	bx = plt.subplot(gs[0])
 	# get the query result
 	# results = query(username_args[0])
 	# gen color array
-	color = ['r', 'o', 'y', 'g', 'c', 'b', 'p']
+	colors = ['r', 'g', 'b']
 	# gen categories and number of categories
-	categories = ["C++", "C", "Python", "Java"]
+	categories = [" C++", "C", "Python", "Java"]
 	print(categories)
 	N = len(categories)
-	# gen result
+	# generate results from request
 	results = []
-	for user in usernames_args:
-		results.append(process(query(user)))
+	languages = []
+
+	a = open("userexample.json", "r")
+	b = open("anotherexample.json", "r")
+	results = [json.load(a)[0], json.load(b)[0]]
+	# for user in usernames_args:
+	# 	results.append(query(user)[0])
+
+	# plot the other stuff (point, performance point, problem solved)
+	barData = []
+	for i in range(len(usernames_args)):
+		barData.append([usernames_args[i], int(results[i]["points"] + .5), int(results[i]["performance_points"] +.5), results[i]["solved"]])
+	bx.axis('tight')
+	bx.axis('off')
+	tb = bx.table(cellText=barData, colLabels=("User", "Points", "Weighted Points", "Solved"), loc='center')
+
 	# initialize the upper bound for the graph
+	for result in results:
+		languages.append(process(result))
 	maxVal = 0
 	# gen angles
 	angles = [n / float(N) * 2 * pi for n in range(N)]
 	angles += angles[:1]
 	# graph the data
-	for i in range(len(a)):
-		plt.polar(angles, a[i], color[i], linestyle='solid', label=usernames_args[i], marker='.')
-		plt.fill(angles, a[i], color[i], alpha=0.3)
-		maxVal = max(maxVal, max(a[i]))
-		print(max(a[i]))
+	for i in range(len(languages)):
+		print(languages[i], colors[i], usernames_args[i])
+		ax.plot(angles, languages[i], colors[i], linestyle='solid', label=usernames_args[i])
+		ax.fill(angles, languages[i], colors[i], alpha=0.3)
+		maxVal = max(maxVal, max(languages[i]))
+		# print(max(a[i]))
 	# gen y ticks
 	yDist = [i for i in range(0, maxVal, maxVal//4)]
 	# x and y ticks
-	plt.xticks(angles[:-1], categories)
+	ax.set_xticks(angles[:-1])
+	ax.set_xticklabels(categories)
+	for tick in ax.xaxis.get_major_ticks():
+		tick.label.set_fontsize(8)
 	ax.set_rlabel_position(0)
-	plt.yticks(yDist, color="grey", size=10)
-	plt.ylim(0, maxVal + 10)
-	# graph :monkey:
+	ax.set_yticks(yDist)
+	for tick in ax.yaxis.get_major_ticks():
+		tick.label.set_fontsize(8)
+	# ax.set_ytickslabels(size=10)
 
-	plt.legend(loc='lower right', bbox_to_anchor=(.9, .9), fontsize='small')
+	ax.set_ylim(0, maxVal*1.1)
+	# graph :monkey:
+	ax.legend(loc='lower right', bbox_to_anchor=(.9, .9), fontsize='small')
 	plt.savefig("tmp.png")
 	# generate the embed
 	embed = discord.Embed(
-			title = "Status",
-			description = "Online",
+			title = "result",
 			colour = discord.Colour.blue()
 	)
 	# add the image onto the embed
-	with open('tmp.png', 'r') as img:
+	with open('tmp.png', 'rb') as img:
+		# io.BytesIO(img.read())
 		img = discord.File(io.BytesIO(img.read()), filename='graph.png')
 	embed.set_image(url=f'attachment://graph.png',)
 	return await ctx.send(embed=embed, file=img)
