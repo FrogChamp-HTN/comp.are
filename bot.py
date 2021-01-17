@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import dotenv
 import datetime
 import os
+import io
 import json
 
 from urllib.request import urlopen
@@ -125,9 +126,13 @@ async def plot(ctx, *usernames_args):
 			description = "Online",
 			colour = discord.Colour.blue()
 	)
-	embed.set_thumbnail(url="")
-	return await ctx.send(embed=embed)
+	# add the image onto the embed
+	with open('tmp.png', 'r') as img:
+		img = discord.File(io.BytesIO(img.read()), filename='graph.png')
+	embed.set_image(url=f'attachment://graph.png',)
+	return await ctx.send(embed=embed, file=img)
 
+# start to run the bot
 def main():
 	with open("log.txt", "w") as log:
 		log.write(f"[{datetime.datetime.now()}] Bot Started! Waiting for Query...\n")
