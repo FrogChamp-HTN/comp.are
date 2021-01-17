@@ -5,6 +5,7 @@ import datetime
 import os
 import io
 import json
+import dropbase
 
 from urllib.request import urlopen
 from discord.ext import commands
@@ -62,6 +63,13 @@ async def cache(ctx, *username_args):
 	#print("[" + json.dumps(userdata) + "]")
 
 	# send all of this to Dropbase
+	jobid = dropbase.upload_file_via_presigned_url("[" + json.dumps(userdata) + "]")
+	print(jobid)
+	dropbase.get_status(jobid)
+
+	print(dropbase.query_db("users").text)
+
+	await ctx.send("Done!")
 
 def process(json_file):
 	# read json
