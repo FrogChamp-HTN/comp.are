@@ -10,6 +10,8 @@ We usually have an only general idea about what we langauges friends and people 
 
 Our project comes in the form of a Discord bot, which can act as a REPL like enviroment where many people can interact with the bot. It uses the judge, [DM::OJ](https://dmoj.ca) to gather data about specific profiles on the site, and then on request can create a graphic comparing the skills of two or more users.
 
+Users first need to use the cache command to store thier user data on the database, which takes a few seconds due to the large amount of data being transferred. Then, they are able to make quick and easy comparisons with others by querying only Dropbase's database. Users can later update thier cached prfile if required. 
+
 ## How We built it
 
 We used Discord.py as the library for handling the bot logic. For API calles to both DM::OJ and Dropbase, we used native Python. We used Dropbase here as a sort of online Postgres database, where we could upload user data once to Dropbase to make comparisons between profiles already in the database very fast. Finally, for visualisation, we used Python's matplotlib library.
