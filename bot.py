@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import dotenv
 import datetime
 import os
-from urllib.request import urlopen
 import json
 
+from urllib.request import urlopen
 from discord.ext import commands
 from math import pi
 dotenv.load_dotenv()
@@ -61,34 +61,63 @@ async def cache(ctx, *username_args):
 
 	# send all of this to Dropbase
 
-
+def filter(json_file):
+	# read json
+	results = json.load(json_file)[0]
+	languages = json.loads(results["languages"])
+	# calc values
+	values = [0 for i in range(4)]
+	for key, value in languages.items():
+		if "cpp" in key.lower() or "clang++" in key.lower():
+			values[0] += value
+		elif key[0].lower() == "c":
+			values[1] += value
+		elif key.lower()[:2] == "py":
+			values[2] += value
+		elif "java" in key.lower():
+			values[3] += value
+	values += values[:1]
+	# return values
+	return values
 
 @bot.command(name="plot")
-async def plot(ctx, *username_args):
+async def plot(ctx, *usernames_args):
 	# figure and subplot
-	fig = plt.figure(figsize=(6,6))
+	# fig = plt.figure(figsize=(6,6))
 	ax = plt.subplot(polar="True")
-
+	# get the query result
+	# results = query(username_args[0])
+	# gen color array
+	color = ['r', 'o', 'y', 'g', 'c', 'b', 'p']
 	# gen categories and number of categories
-	categories = ["A", "B", "C", "D", "E"]
+	categories = ["C++", "C", "Python", "Java"]
+	print(categories)
 	N = len(categories)
 	# gen result
-	# results = query(username_args[0])
-	results = [100, 200, 150, 200, 120]
-	results += results[:1]
+	results = []
+	for user in usernames_args:
+		results.append(process(query(user)))
+	# initialize the upper bound for the graph
+	maxVal = 0
 	# gen angles
 	angles = [n / float(N) * 2 * pi for n in range(N)]
 	angles += angles[:1]
+	# graph the data
+	for i in range(len(a)):
+		plt.polar(angles, a[i], color[i], linestyle='solid', label=usernames_args[i], marker='.')
+		plt.fill(angles, a[i], color[i], alpha=0.3)
+		maxVal = max(maxVal, max(a[i]))
+		print(max(a[i]))
 	# gen y ticks
-	yDist = [i for i in range(0, 200, 50)]
-	# fill the in area
-	plt.polar(angles, results, marker='.')
-	plt.fill(angles, results, alpha=0.3)
+	yDist = [i for i in range(0, maxVal, maxVal//4)]
 	# x and y ticks
 	plt.xticks(angles[:-1], categories)
 	ax.set_rlabel_position(0)
 	plt.yticks(yDist, color="grey", size=10)
-	plt.ylim(0, 210)
+	plt.ylim(0, maxVal + 10)
+	# graph :monkey:
+
+	plt.legend(loc='lower right', bbox_to_anchor=(.9, .9), fontsize='small')
 	plt.savefig("tmp.png")
 	# generate the embed
 	embed = discord.Embed(
