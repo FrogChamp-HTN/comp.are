@@ -36,7 +36,7 @@ def get_status(job_id):
     r = requests.get("https://api2.dropbase.io/v1/pipeline/run_pipeline", data={ "job_id":job_id })
     
     # Keep pinging the server until the job is finished
-    while(r.status_code != 200):
+    while(r.status_code == 202):
         print(r.json()) # Prints the message of what is happening
         time.sleep(1)
         r = requests.get("https://api2.dropbase.io/v1/pipeline/run_pipeline", data={ "job_id":job_id})
