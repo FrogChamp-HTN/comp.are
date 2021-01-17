@@ -1,7 +1,7 @@
 import requests, time, os
 
-TOKEN = "9feGCnqygaAo4Xerm8hrLb"
-DBAUTH = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhYmFzZUlkIjoiVUxBcDlvRFI4dUU1cE5aRjdSbW8yVSIsImFjY2Vzc1Blcm0iOiJmdWxsIiwidG9rZW5JZCI6IjREanRORFZaYTdLT0lpc1FCdzl6aXhEQ1NnVm96YndQWEVuVlJMejVTZDVUMWR3N2lVdklWZ2hJU0xhZGZtVFgiLCJpYXQiOjE2MTA4NTg3MTUsImV4cCI6MTYxMTI5MDcxNSwiaXNzIjoiZHJvcGJhc2UuaW8iLCJzdWIiOiJoM3F3dFgzYVZaVmVSOEd2NTViYlR6In0.J4_PRbiOjibm3qkmLsDAZv5aqBlVR61KGrJgeTVOJ40"
+TOKEN = "349JaTCo6MGo4snnxrygsW"
+DBAUTH = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhYmFzZUlkIjoiVUxBcDlvRFI4dUU1cE5aRjdSbW8yVSIsImFjY2Vzc1Blcm0iOiJmdWxsIiwidG9rZW5JZCI6ImVuQ2YwMTBZZ0J6bVdoVWJGWkJZMXFkY0JWbFhscEg1VHVOQ0xUQlRNTmdRcFc1dDZKelZ2QTBxampIQ0FRUjMiLCJpYXQiOjE2MTA4OTE0MzIsImV4cCI6MTYxMTMyMzQzMiwiaXNzIjoiZHJvcGJhc2UuaW8iLCJzdWIiOiJoM3F3dFgzYVZaVmVSOEd2NTViYlR6In0.nL2lg0DlWSo-UGCvfXMUC-Y1saCc8lkT9nR6xZE7hfw"
 
 def upload_file_via_presigned_url(contents):
     # First, we need to get pre-signed url 
@@ -28,7 +28,7 @@ def upload_file_via_presigned_url(contents):
     return job_id
 
 def query_db(query):
-    r = requests.get('https://query.dropbase.io/ULAp9oDR8uE5pNZF7Rmo2U' + query, headers={'Authorization': DBAUTH})
+    r = requests.get('https://query.dropbase.io/ULAp9oDR8uE5pNZF7Rmo2U/' + query, headers={'Authorization': DBAUTH})
     return r
 
 def get_status(job_id):
@@ -36,7 +36,7 @@ def get_status(job_id):
     r = requests.get("https://api2.dropbase.io/v1/pipeline/run_pipeline", data={ "job_id":job_id })
     
     # Keep pinging the server until the job is finished
-    while(r.status_code == 202):
+    while(r.status_code != 200):
         print(r.json()) # Prints the message of what is happening
         time.sleep(1)
         r = requests.get("https://api2.dropbase.io/v1/pipeline/run_pipeline", data={ "job_id":job_id})

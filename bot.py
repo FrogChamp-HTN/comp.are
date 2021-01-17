@@ -6,6 +6,7 @@ import os
 import io
 import json
 import dropbase
+import time
 
 from urllib.request import urlopen
 from discord.ext import commands
@@ -67,7 +68,9 @@ async def cache(ctx, *username_args):
 	print(jobid)
 	dropbase.get_status(jobid)
 
-	print(dropbase.query_db("users").text)
+	time.sleep(1) # Wait for db to process changes
+
+	print(dropbase.query_db("data").text)
 
 	await ctx.send("Done!")
 
@@ -78,9 +81,9 @@ def process(json_file):
 	values = [0 for i in range(4)]
 	for key, value in languages.items():
 		if "cpp" in key.lower() or "clang++" in key.lower():
-			values[0] += value
-		elif key[0].lower() == "c":
 			values[1] += value
+		elif key[0].lower() == "c":
+			values[0] += value
 		elif key.lower()[:2] == "py":
 			values[2] += value
 		elif "java" in key.lower():
@@ -88,6 +91,9 @@ def process(json_file):
 	values += values[:1]
 	# return values
 	return values
+
+def query(a):
+	return json.loads(dropbase.query_db("data?username=eq." + a).text)
 
 @bot.command(name="plot")
 async def plot(ctx, *usernames_args):
@@ -99,22 +105,23 @@ async def plot(ctx, *usernames_args):
 	ax.set_theta_direction(-1)
 	bx = plt.subplot(gs[0])
 	# get the query result
-	# results = query(username_args[0])
+	#results = query(usernames_args[0], usernames_args[1])
 	# gen color array
 	colors = ['r', 'g', 'b']
 	# gen categories and number of categories
-	categories = [" C++", "C", "Python", "Java"]
+	categories = ["C", " C++", "Python", "Java"]
 	print(categories)
 	N = len(categories)
 	# generate results from request
 	results = []
 	languages = []
 
-	a = open("userexample.json", "r")
-	b = open("anotherexample.json", "r")
-	results = [json.load(a)[0], json.load(b)[0]]
-	# for user in usernames_args:
-	# 	results.append(query(user)[0])
+	#a = open("userexample.json", "r")
+	#b = open("anotherexample.json", "r")
+	#results = [json.load(a)[0], json.load(b)[0]]
+	for user in usernames_args:
+		print(query(user))
+		results.append(query(user)[-1])
 
 	# plot the other stuff (point, performance point, problem solved)
 	barData = []
